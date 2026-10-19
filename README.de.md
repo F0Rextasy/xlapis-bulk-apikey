@@ -30,12 +30,6 @@
 
 </div>
 
-<div align="center">
-
-[English](README.md) · [Türkçe](README.tr.md) · [中文](README.cn.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Español](README.es.md) · [Français](README.fr.md) · **Deutsch** · [Русский](README.ru.md) · [Português](README.pt.md)
-
-</div>
-
 ---
 
 ## ✨ Warum es das gibt
