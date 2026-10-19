@@ -33,9 +33,9 @@
 
 ---
 
-## ✨ Por que isto existe
+## ✨ Por que isso existe
 
-Xlapis é um painel New-API cuja porta é do tipo **"nofield"**: `POST /api/user/register` recebe um nome de usuário e uma senha e **nenhuma caixa de correio** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). A pegadinha está do outro lado da porta — o grupo `default` **não tem canal** para os modelos baratos, então um token criado ali responde `503 No available channel for model … under group default`. Esta ferramenta, portanto, **vincula o token ao grupo do próprio modelo** (`enable_groups[0]` de `/api/pricing`) e percorre os modelos de menor preço até que o chat responda 200. A unidade que escala é *uma conta por chave*: 63 chaves na frota do operador (60 do trilho de criação, 3 criadas pela CLI fornecida enquanto era verificada), cada uma comprovada por uma chamada de chat ao vivo.
+Xlapis é um painel New-API cuja porta é do tipo **"nofield"**: `POST /api/user/register` recebe um nome de usuário e uma senha e **nenhuma caixa de correio** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). A pegadinha está do outro lado da porta — o grupo `default` **não tem canal** para os modelos baratos, então um token criado ali responde `503 No available channel for model … under group default`. Esta ferramenta, portanto, **vincula o token ao grupo do próprio modelo** (`enable_groups[0]` de `/api/pricing`) e percorre os modelos de preço mais baixo até que o chat responda 200. A unidade que escala é *uma conta por chave*: 63 chaves na frota do operador (60 do trilho de criação, 3 criadas pela CLI fornecida durante a verificação), cada uma comprovada por uma chamada de chat ao vivo.
 
 ## 🎁 Nível gratuito — quanto você recebe
 
@@ -46,9 +46,9 @@ Xlapis é um painel New-API cuja porta é do tipo **"nofield"**: `POST /api/user
 | Cartão exigido | **Não** |
 | Captcha / Turnstile | **nenhum** (`turnstile_check: false`) |
 | Caixa de correio | **não usada** — a chamada de registro envia apenas `{username, password}` |
-| Crédito de cadastro | medido **500** de cota da conta em 3 contas criadas pela CLI (≈ $0,001 — o portão funciona com `unlimited_quota`, não com crédito) |
-| Portão de canal | o modelo deve ser solicitado em um grupo que o atenda; `default` responde `503` |
-| A unidade que escala | **uma conta = uma chave** → `--count N` significa "N contas" |
+| Crédito de cadastro | **500** de cota de conta medidos em 3 contas criadas pela CLI (≈ $0.001 — o portão roda em `unlimited_quota`, não no crédito) |
+| Portão de canal | o modelo deve ser solicitado em um grupo que o sirva; `default` responde `503` |
+| A unidade que escala | **uma conta = uma chave** → `--count N` é "N contas" |
 
 > 💡 O nível gratuito é definido pela Xlapis e pode mudar. Confira os números ao vivo em [xlapis.com](https://xlapis.com) — e deixe o próprio portão da ferramenta decidir:
 
@@ -64,7 +64,7 @@ O painel precifica **18 ids**, dos quais **16 são compatíveis com chat e carre
 | --- | --- | --- | --- |
 | `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | o id de chat mais barato — o portão para aqui em todas as contas |
 
-Ids que o painel oferece com um grupo habilitado (mantidos para a ordem de fallback do portão, não testados aqui): `grok-4.5`, `grok-4.6` (grupo `grok-缓存分组`), `gpt-5.6-luna` (grupo `GPT-plus-速刷-稳定版`). O grupo `default` não atende nenhum deles.
+Ids que o painel oferece com um grupo habilitado - fixados um a um (3 chaves cada, --verify-only --model id) - e nenhum deles respondeu por si só: todas as chaves caíram para deepseek-v4.1-flash. Eles permanecem na ordem de fallback do portão e fora da tabela verificada. O grupo `default` não serve nenhum deles.
 
 ## 🧪 Como usar a API
 
@@ -90,15 +90,15 @@ node src/launcher.js              # interactive
 node src/cli.js --count 50 --conc 2
 ```
 
-`keys.txt` é escrito **somente** depois que uma conclusão de chat ao vivo comprova a chave.
+`keys.txt` é escrito **somente** após uma conclusão de chat ao vivo provar a chave.
 
 | Modo | O que faz |
 | --- | --- |
 | `run` (padrão) | cria contas até `--count`, valida cada chave com um chat ao vivo |
 | `--verify-only` | revarre `keys.txt`, movendo qualquer coisa que falhe para `keys-ungated.txt` |
 | `--screen` | testa sua lista de proxies contra o painel → `proxies.live.txt` |
-| `--probe` | verificação do ambiente: flags do painel, preços, ordem do portão, saídas |
-| `--collect` | reconstrói `keys.txt` a partir de `accounts.json` (toda linha com `chat_status: 200`) |
+| `--probe` | verificação de ambiente: flags do painel, preços, ordem do portão, saídas |
+| `--collect` | reconstrói `keys.txt` a partir de `accounts.json` (toda linha `chat_status: 200`) |
 
 ### 🖱️ O launcher
 
@@ -109,7 +109,7 @@ O launcher pergunta pela lista de proxies, quantidade e modelo, lembra-os em `la
 | Verificação | Resultado |
 | --- | --- |
 | `GET /api/status` | **200** — `XL API`, `password_register_enabled: true`, `email_verification: false`, `turnstile_check: false` |
-| `GET /api/pricing` | **200** — 18 ids precificados, **16 compatíveis com chat e com grupo habilitado**; o id de chat mais barato é `deepseek-v4.1-flash` |
+| `GET /api/pricing` | **200** — 18 ids precificados, **16 compatíveis com chat com um grupo habilitado**; o id de chat mais barato é `deepseek-v4.1-flash` |
 | `POST /api/user/register` | **200** `{username,password}` — sem caixa de correio, sem captcha (503 é repetido duas vezes, depois a chamada é repetida com um campo de e-mail) |
 | `POST /api/user/login` | **200** — `access_token` (cookie + fallback `New-Api-User` para forks mais antigos) |
 | `GET /api/user/self` | **200** — cota 500 em uma conta nova |
@@ -133,9 +133,9 @@ inbox (one address per account)                                  a fresh address
 | cadastro | `POST /api/user/register {username,password}` | sem campo de e-mail; um 5xx é repetido após 2,5 s, depois a chamada é repetida com um endereço |
 | login | `POST /api/user/login {username,password}` | `access_token`, mais o cookie de sessão para forks que retornam apenas um cookie |
 | conta | `GET /api/user/self` | id + cota |
-| preços | `GET /api/pricing` | modelo de chat mais barato e seu `enable_groups[0]` — o grupo onde o token deve estar |
-| chave | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`; o grupo é o que faz a chave responder |
-| verificação | `POST /v1/chat/completions` | 200 ao vivo exigido antes de `keys.txt`; um 429 é um sinal de ritmo (aguarde 2,5 s, repita o mesmo modelo) |
+| preços | `GET /api/pricing` | modelo de chat mais barato e seu `enable_groups[0]` — o grupo em que o token deve viver |
+| chave | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`; o grupo é o que faz ele responder |
+| verificação | `POST /v1/chat/completions` | 200 ao vivo exigido antes de `keys.txt`; um 429 é um sinal de ritmo (espere 2,5 s, repita o mesmo modelo) |
 
 ## ⚙️ Opções da CLI
 
@@ -146,26 +146,26 @@ node src/cli.js [mode] [flags]
 | Flag | Padrão | Significado |
 | --- | --- | --- |
 | `--count N` | 10 | contas (= chaves) a criar |
-| `--conc N` | 2 | contas em andamento (máx. 16) — uma saída é fixada por worker |
-| `--host <name>` | `xlapis.com` | host do painel (o mesmo trilho funciona em espelhos deste painel) |
+| `--conc N` | 2 | contas em andamento (máx 16) — uma saída é fixada por worker |
+| `--host <name>` | `xlapis.com` | host do painel (o mesmo trilho roda em espelhos deste painel) |
 | `--model <id>` | mais barato precificado | fixa o portão em um id de modelo |
 | `--group <name>` | o grupo do modelo | fixa o grupo do token |
 | `--pool <file>` | `proxies.txt` | lista de proxies (a variável de ambiente `XLAPIS_PROXIES` também funciona) |
 | `--gap MS` | 800 | pausa entre modelos dentro de uma conta |
 | `--tries N` | 2 | saídas tentadas por conta |
 
-Uma lista filtrada pode conter uma nota à direita (`http://host:port 1.2.3.4`) — o carregador mantém a primeira coluna.
+Uma lista filtrada pode carregar uma nota ao final (`http://host:port 1.2.3.4`) — o carregador mantém a primeira coluna.
 
 ## 🛰️ Atrás de um proxy
 
-Toda requisição sai por uma saída do seu pool — a ferramenta nunca disca diretamente para o painel, e **uma conta vive em uma saída** durante toda a sua vida (o painel vincula a sessão ao IP). Medido na frota do operador: 18 de 23 saídas conseguiram alcançar o painel, e 3 contas com conc 2 produziram **3/3 chaves ao vivo em 72 s** (≈20 s/chave).
+Toda requisição sai por uma saída do seu pool — a ferramenta nunca disca diretamente para o painel, e **uma conta vive em uma saída** por toda a sua vida (o painel vincula a sessão ao IP). Medido na frota do operador: 18 de 23 saídas conseguiram alcançar o painel, e 3 contas com conc 2 produziram **3/3 chaves ao vivo em 72 s** (≈20 s/chave).
 
 ## 📄 Arquivos
 
 | Caminho | Conteúdo |
 | --- | --- |
 | `keys.txt` | chaves com chat-200, uma por linha — ignorado pelo git |
-| `keys-ungated.txt` | chaves que falharam na última varredura `--verify-only` — tente novamente mais tarde |
+| `keys-ungated.txt` | chaves que falharam na última varredura `--verify-only` — tente novamente depois |
 | `accounts.json` | nome de usuário / cota / grupo / modelo / status do chat por conta — ignorado pelo git |
 | `proxies.txt` | sua lista de saídas — ignorado pelo git |
 
@@ -179,15 +179,15 @@ node src/connect-9router.js
 
 Padrões: `--base http://localhost:20128`, `--password 123456`, `--name "Xlapis"`, `--prefix xlapis`, `--base-url https://xlapis.com/v1`.
 
-## 🔑 O que uma chave oferece
+## 🔑 O que uma chave te dá
 
 | | |
 | --- | --- |
 | 🏢 Provedor | **Xlapis** — [xlapis.com](https://xlapis.com) |
-| 🎁 O que o provedor oferece | uma conta por chave — cadastro sem caixa de correio, token vinculado a grupo, toda chave verificada por chat |
-| 🔑 O que uma chave oferece | uma chave de API limitada à sua própria conta: os 16 ids de modelo no endpoint abaixo, nos limites do seu plano. A cota fica na **conta**, que é exatamente por isso que esta ferramenta cria uma conta por chave |
+| 🎁 O que o provedor dá | uma conta por chave — cadastro sem caixa de correio, token vinculado ao grupo, toda chave verificada por chat |
+| 🔑 O que uma chave te dá | uma chave de API limitada à sua própria conta: os 16 ids de modelo no endpoint abaixo, nos limites do seu plano. A cota vive na **conta**, que é exatamente por isso que esta ferramenta cria uma conta por chave |
 | 🌐 Formato da API | Compatível com OpenAI: `POST https://xlapis.com/v1/chat/completions` |
-| 🔒 Seus dados | apenas xlapis.com e o backend de caixa de correio que você configurar são contatados; as chaves permanecem na sua máquina |
+| 🔒 Seus dados | apenas xlapis.com e o backend de caixa de correio que você configurar são contatados; as chaves ficam na sua máquina |
 
 ## 🐞 Problemas
 

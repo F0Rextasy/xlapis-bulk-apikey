@@ -30,12 +30,11 @@
 
 </div>
 
-
 ---
 
 ## ✨ Bu neden var
 
-Xlapis, kapısı **"nofield"** olan bir New-API panelidir: `POST /api/user/register` bir kullanıcı adı ve parola alır ve **hiç posta kutusu almaz** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). İşin püf noktası kapının diğer tarafında — `default` grubunun ucuz modeller için **hiç kanalı yoktur**, bu yüzden orada oluşturulan bir token `503 No available channel for model … under group default` yanıtı verir. Bu araç bu nedenle **token'ı modelin kendi grubuna bağlar** (`/api/pricing`'den `enable_groups[0]`) ve sohbet 200 yanıtı verene kadar en ucuz fiyatlı modelleri dener. Ölçeklenen birim *anahtar başına bir hesaptır*: operatörün filosunda 63 anahtar (60'ı üretim hattından, 3'ü doğrulanırken gönderilen CLI tarafından oluşturuldu), her biri canlı bir sohbet çağrısıyla kanıtlandı.
+Xlapis, kapısı **"nofield"** olan bir New-API panelidir: `POST /api/user/register` bir kullanıcı adı ve parola alır ve **hiç posta kutusu almaz** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). İşin püf noktası kapının diğer tarafındadır — `default` grubunun ucuz modeller için **hiç kanalı yoktur**, bu yüzden orada oluşturulan bir token `503 No available channel for model … under group default` yanıtı verir. Bu araç bu nedenle **token'ı modelin kendi grubuna bağlar** (`/api/pricing`'den `enable_groups[0]`) ve sohbet 200 yanıtı verene kadar en ucuz fiyatlı modelleri dener. Ölçeklenen birim *anahtar başına bir hesaptır*: operatörün filosunda 63 anahtar (60'ı üretim hattından, 3'ü doğrulanırken gönderilen CLI tarafından oluşturulmuş), her biri canlı bir sohbet çağrısıyla kanıtlanmıştır.
 
 ## 🎁 Ücretsiz katman — ne kadar alırsınız
 
@@ -46,27 +45,27 @@ Xlapis, kapısı **"nofield"** olan bir New-API panelidir: `POST /api/user/regis
 | Kart gerekli mi | **Hayır** |
 | Captcha / Turnstile | **yok** (`turnstile_check: false`) |
 | Posta kutusu | **kullanılmaz** — kayıt çağrısı yalnızca `{username, password}` gönderir |
-| Kayıt kredisi | CLI ile oluşturulan 3 hesapta ölçülen **500** hesap kotası (≈ $0.001 — geçit `unlimited_quota` üzerinde çalışır, kredi üzerinde değil) |
+| Kayıt kredisi | CLI ile oluşturulan 3 hesapta ölçülen **500** hesap kotası (≈ $0.001 — geçit krediye değil `unlimited_quota`'ya göre çalışır) |
 | Kanal geçidi | model, onu sunan bir grupta istenmelidir; `default` `503` yanıtı verir |
 | Ölçeklenen birim | **bir hesap = bir anahtar** → `--count N` "N hesap" demektir |
 
 > 💡 Ücretsiz katman Xlapis tarafından belirlenir ve değişebilir. Güncel sayıları [xlapis.com](https://xlapis.com) adresinden kontrol edin — ve kararı aracın kendi geçidine bırakın:
 
 ```bash
-node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
+node src/cli.js --verify-only     # keys.txt içindeki her anahtar gerçek bir sohbet çağrısıyla yeniden test edilir
 ```
 
 ## 🤖 Modeller — 16'sının tamamı
 
-Panel **18 id** fiyatlandırır; bunlardan **16'sı sohbet yetenekli ve etkin bir gruba sahiptir** (`视频模型` grubundaki iki `seedance-*` video id'si atlanır — yalnızca isme dayalı bir filtre önce onları dener ve hesabı boşa harcar). Yalnızca gerçek bir anahtarla canlı **200** yanıtı veren id'ler listelenmiştir:
+Panel **18 id** fiyatlandırır; bunlardan **16'sı sohbet yeteneklidir ve etkin bir grup taşır** (`视频模型` grubundaki iki `seedance-*` video id'si atlanır — yalnızca isme bakan bir filtre önce onları dener ve hesabı boşa harcar). Yalnızca gerçek bir anahtarla canlı **200** yanıtı veren id'ler listelenmiştir:
 
 | Model ID | ✓ | Grup | Notlar |
 | --- | --- | --- | --- |
 | `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | en ucuz sohbet id'si — geçit her hesapta burada durur |
 
-Panelin etkin bir grupla sunduğu id'ler (geçidin yedek sırası için tutulur, burada geçitlenmez): `grok-4.5`, `grok-4.6` (grup `grok-缓存分组`), `gpt-5.6-luna` (grup `GPT-plus-速刷-稳定版`). `default` grubu bunların hiçbirini sunmaz.
+Panelin etkin bir grupla sunduğu id'ler - tek tek sabitlenmiş (her biri 3 anahtar, --verify-only --model id) - ve hiçbiri kendi başına yanıt vermedi: her anahtar deepseek-v4.1-flash'e düştü. Geçit yedek sırasında kalırlar ve doğrulanmış tablonun dışındadırlar. `default` grubu bunların hiçbirini sunmaz.
 
-## 🧪 API nasıl kullanılır
+## 🧪 API'yi nasıl kullanırım
 
 ```bash
 curl https://xlapis.com/v1/chat/completions \
@@ -94,7 +93,7 @@ node src/cli.js --count 50 --conc 2
 
 | Mod | Ne yapar |
 | --- | --- |
-| `run` (varsayılan) | `--count` değerine kadar hesap oluşturur, her anahtarı canlı bir sohbetle geçitler |
+| `run` (varsayılan) | `--count` değerine kadar hesap oluşturur, her anahtarı canlı bir sohbetle geçitten geçirir |
 | `--verify-only` | `keys.txt` dosyasını yeniden tarar, başarısız olanları `keys-ungated.txt` dosyasına taşır |
 | `--screen` | proxy listenizi panele karşı test eder → `proxies.live.txt` |
 | `--probe` | ortam kontrolü: panel bayrakları, fiyatlandırma, geçit sırası, çıkışlar |
@@ -109,11 +108,11 @@ Başlatıcı proxy listesini, sayıyı ve modeli sorar, bunları `launcher.confi
 | Kontrol | Sonuç |
 | --- | --- |
 | `GET /api/status` | **200** — `XL API`, `password_register_enabled: true`, `email_verification: false`, `turnstile_check: false` |
-| `GET /api/pricing` | **200** — 18 fiyatlı id, **16'sı etkin gruplu sohbet yetenekli**; en ucuz sohbet id'si `deepseek-v4.1-flash` |
+| `GET /api/pricing` | **200** — 18 fiyatlı id, **16'sı etkin grupla sohbet yetenekli**; en ucuz sohbet id'si `deepseek-v4.1-flash` |
 | `POST /api/user/register` | **200** `{username,password}` — posta kutusu yok, captcha yok (503 iki kez yeniden denenir, ardından çağrı bir e-posta alanıyla yeniden denenir) |
 | `POST /api/user/login` | **200** — `access_token` (eski çatallar için cookie + `New-Api-User` yedeği) |
 | `GET /api/user/self` | **200** — yeni bir hesapta kota 500 |
-| `POST /api/token/` → `POST /api/token/<id>/key` | token **modelin kendi grubu içinde** oluşturulur, düz metin anahtar açığa çıkarılır |
+| `POST /api/token/` → `POST /api/token/<id>/key` | token **modelin grubu içinde** oluşturulur, düz metin anahtar açığa çıkar |
 | `POST /v1/chat/completions` — yazılmadan önce **her** anahtar için çalıştırılır | gerçek içerikle **200** (`choices`, `error` yok) |
 | sohbet kontrolünde başarısız olan bir anahtar | `keys.txt` dosyasına asla yazılmaz |
 
@@ -130,7 +129,7 @@ inbox (one address per account)                                  a fresh address
 
 | Adım | Çağrı | Notlar |
 | --- | --- | --- |
-| kayıt | `POST /api/user/register {username,password}` | e-posta alanı yok; 5xx 2,5 sn sonra yeniden denenir, ardından çağrı bir adresle yeniden denenir |
+| kayıt | `POST /api/user/register {username,password}` | e-posta alanı yok; bir 5xx 2,5 sn sonra yeniden denenir, ardından çağrı bir adresle yeniden denenir |
 | giriş | `POST /api/user/login {username,password}` | `access_token`, ayrıca yalnızca cookie döndüren çatallar için oturum cookie'si |
 | hesap | `GET /api/user/self` | id + kota |
 | fiyatlandırma | `GET /api/pricing` | en ucuz sohbet modeli ve `enable_groups[0]` — token'ın içinde bulunması gereken grup |
@@ -146,7 +145,7 @@ node src/cli.js [mode] [flags]
 | Bayrak | Varsayılan | Anlamı |
 | --- | --- | --- |
 | `--count N` | 10 | oluşturulacak hesap (= anahtar) sayısı |
-| `--conc N` | 2 | eşzamanlı hesap (en fazla 16) — her çalışan için bir çıkış sabitlenir |
+| `--conc N` | 2 | eşzamanlı hesap (en fazla 16) — her işçi için bir çıkış sabitlenir |
 | `--host <name>` | `xlapis.com` | panel ana bilgisayarı (aynı hat bu panelin yansımalarında da çalışır) |
 | `--model <id>` | en ucuz fiyatlı | geçidi tek bir model id'sine sabitler |
 | `--group <name>` | modelin grubu | token grubunu sabitler |
@@ -154,11 +153,11 @@ node src/cli.js [mode] [flags]
 | `--gap MS` | 800 | bir hesap içindeki modeller arasında duraklama |
 | `--tries N` | 2 | hesap başına denenen çıkış sayısı |
 
-Taranmış bir liste sonunda bir not taşıyabilir (`http://host:port 1.2.3.4`) — yükleyici ilk sütunu korur.
+Taranmış bir listenin sonunda bir not olabilir (`http://host:port 1.2.3.4`) — yükleyici ilk sütunu korur.
 
 ## 🛰️ Proxy arkasında
 
-Her istek havuzunuzdan bir çıkış üzerinden ayrılır — araç panele asla doğrudan bağlanmaz ve **bir hesap tüm yaşamı boyunca tek bir çıkışta yaşar** (panel oturumu IP'ye bağlar). Operatörün filosunda ölçüldü: 23 çıkıştan 18'i panele ulaşabildi ve conc 2'de 3 hesap **72 saniyede 3/3 canlı anahtar** üretti (≈20 sn/anahtar).
+Her istek havuzunuzdan bir çıkış üzerinden gider — araç panele asla doğrudan bağlanmaz ve **bir hesap tüm yaşamı boyunca tek bir çıkışta yaşar** (panel oturumu IP'ye bağlar). Operatörün filosunda ölçülen: 23 çıkıştan 18'i panele ulaşabildi ve conc 2'de 3 hesap **72 sn'de 3/3 canlı anahtar** üretti (≈20 sn/anahtar).
 
 ## 📄 Dosyalar
 
@@ -185,9 +184,9 @@ Varsayılanlar: `--base http://localhost:20128`, `--password 123456`, `--name "X
 | --- | --- |
 | 🏢 Sağlayıcı | **Xlapis** — [xlapis.com](https://xlapis.com) |
 | 🎁 Sağlayıcının verdikleri | anahtar başına bir hesap — posta kutusuz kayıt, gruba bağlı token, her anahtar sohbetle doğrulanmış |
-| 🔑 Bir anahtar size ne kazandırır | kendi hesabına kapsamlanmış bir API anahtarı: aşağıdaki uç noktadaki 16 model id'si, planınızın sınırlarında. Kota **hesapta** yaşar, bu aracın anahtar başına bir hesap oluşturmasının nedeni tam da budur |
+| 🔑 Bir anahtar size ne kazandırır | kendi hesabına kapsamlanmış bir API anahtarı: aşağıdaki uç noktada 16 model id'si, planınızın sınırlarında. Kota **hesapta** yaşar, bu aracın anahtar başına bir hesap oluşturmasının nedeni tam da budur |
 | 🌐 API şekli | OpenAI uyumlu: `POST https://xlapis.com/v1/chat/completions` |
-| 🔒 Verileriniz | yalnızca xlapis.com ve yapılandırdığınız gelen kutusu arka ucuna bağlanılır; anahtarlar makinenizde kalır |
+| 🔒 Verileriniz | yalnızca xlapis.com ve yapılandırdığınız gelen kutusu arka ucuyla iletişim kurulur; anahtarlar makinenizde kalır |
 
 ## 🐞 Sorunlar
 

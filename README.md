@@ -63,7 +63,7 @@ The panel prices **18 ids**, of which **16 are chat-capable and carry an enabled
 | --- | --- | --- | --- |
 | `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | the cheapest chat id — the gate stops here on every account |
 
-Ids the panel offers with an enabled group (kept for the gate's fallback order, not gated here): `grok-4.5`, `grok-4.6` (group `grok-缓存分组`), `gpt-5.6-luna` (group `GPT-plus-速刷-稳定版`). The `default` group serves none of them.
+Ids the panel offers with an enabled group - pinned one by one (3 keys each, --verify-only --model id) - and none of them answered on itself: every key fell through to deepseek-v4.1-flash. They stay in the gate fallback order and out of the verified table. The `default` group serves none of them.
 
 ## 🧪 How to use the API
 
