@@ -4,7 +4,7 @@
 /**
  * Connect Xlapis to a 9Router instance.
  *
- * Xlapis serves an OpenAI-compatible endpoint (https://inference.xlapis.global/v1), so a single
+ * Xlapis serves an OpenAI-compatible endpoint (https://xlapis.com/v1), so a single
  * provider-node carries every key: this registers one `openai-compatible` node
  * with prefix `xlapis` and then one connection per API key, named
  * `xlapis-001`, `xlapis-002`, … Re-running it is idempotent (an existing node
@@ -13,7 +13,7 @@
  * Usage:
  *   node src/connect-9router.js \
  *     --base http://localhost:20128 --password 123456 \
- *     --api-key dahl_xxxx [--name "Xlapis"] [--prefix xlapis]
+ *     --api-key sk-xxxx [--name "Xlapis"] [--prefix xlapis]
  *
  *   node src/connect-9router.js                  # register every key in keys.txt
  *   node src/connect-9router.js --model <id>     # pin the connection's default model
@@ -24,7 +24,7 @@
  *   --api-key <key>    Xlapis API key     (default: every key in keys.txt)
  *   --name <name>      provider-node name       (default Xlapis)
  *   --prefix <slug>    provider prefix in 9Router (default xlapis)
- *   --base-url <url>   provider base URL        (default https://inference.xlapis.global/v1)
+ *   --base-url <url>   provider base URL        (default https://xlapis.com/v1)
  *   --model <id>       connection default model (default MiniMaxAI/MiniMax-M2.7)
  *
  * Zero dependencies. Node.js >= 18.
