@@ -80,8 +80,9 @@ curl https://xlapis.com/v1/chat/completions \
 # clone or fork this repository, then:
 cd xlapis-bulk-apikey
 
-# 1) your proxy list, one per line (http://… or socks5://…)
+# 1) optional: your proxy list, one per line (http://… or socks5://…)
 printf 'http://127.0.0.1:8080\n' > proxies.txt
+#    (skip this — without a pool the tool connects directly)
 
 # 2) go
 node src/launcher.js              # interactive
@@ -95,7 +96,7 @@ node src/cli.js --count 50 --conc 2
 | --- | --- |
 | `run` (default) | mint accounts until `--count`, gate every key with a live chat |
 | `--verify-only` | re-sweep `keys.txt`, moving anything that fails to `keys-ungated.txt` |
-| `--screen` | test your proxy list against the panel → `proxies.live.txt` |
+| `--screen` | test your proxy list (or the direct route) against the panel → `proxies.live.txt` |
 | `--probe` | environment check: panel flags, pricing, gate order, exits |
 | `--collect` | rebuild `keys.txt` from `accounts.json` (every `chat_status: 200` row) |
 
@@ -149,7 +150,7 @@ node src/cli.js [mode] [flags]
 | `--host <name>` | `xlapis.com` | panel host (the same rail runs on mirrors of this panel) |
 | `--model <id>` | cheapest priced | pin the gate to one model id |
 | `--group <name>` | the model's group | pin the token group |
-| `--pool <file>` | `proxies.txt` | proxy list (`XLAPIS_PROXIES` env works too) |
+| `--pool <file>` | `proxies.txt` | proxy list (`XLAPIS_PROXIES` env works too) — **optional**, without it the tool connects directly |
 | `--gap MS` | 800 | pause between models inside one account |
 | `--tries N` | 2 | exits tried per account |
 
@@ -157,7 +158,13 @@ A screened list may carry a trailing note (`http://host:port 1.2.3.4`) — the l
 
 ## 🛰️ Behind a proxy
 
-Every request leaves through an exit from your pool — the tool never dials the panel directly, and **one account lives on one exit** for its whole life (the panel binds the session to the IP). Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **3/3 live keys in 72 s** (≈20 s/key).
+**Optional — recommended at scale (per-IP limits, bans).** The tool works without a proxy too.
+
+- **With a pool:** pass `--pool <file>` (or set `XLAPIS_PROXIES`) and every request goes through an exit from that list — **one account lives on one exit** for its whole life (the panel binds the session to the IP), and a dead line fails that attempt so the tool moves to the next one.
+- **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly. Nothing about registration, key minting or the chat gate changes — only where the packets leave from.
+- Run `--screen` against either mode: it tests the exits you have (or the direct route) against the panel before a real run.
+
+Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **3/3 live keys in 72 s** (≈20 s/key).
 
 ## 📄 Files
 

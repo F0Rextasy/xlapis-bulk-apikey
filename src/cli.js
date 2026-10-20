@@ -12,7 +12,8 @@
  * (`enable_groups[0]` from `/api/pricing`) and walks the cheapest priced models
  * until the chat answers 200.
  *
- * Flow, per account, every request over one pinned exit:
+ * Flow, per account, every request over one exit from your pool (direct when
+ * none is given):
  *   1. register  `POST /api/user/register` {username,password}  (no e-mail field)
  *   2. login     `POST /api/user/login`     {username,password} → access_token
  *   3. account   `GET  /api/user/self`      → id + quota
@@ -29,7 +30,7 @@
  *   --host <name>    panel host                               [xlapis.com]
  *   --model <id>     pin the gate to one model id (default: cheapest priced)
  *   --group <name>   pin the token group (default: the model's own group)
- *   --pool <file>    proxy list, one exit per line    (env XLAPIS_PROXIES)
+ *   --pool <file>    proxy list, one exit per line (env XLAPIS_PROXIES) [optional]
  *   --gap MS         pause between rounds inside a worker          [800]
  *   --tries N        exits tried per account before giving up             [2]
  *   --timeout MS     per-request timeout                                 [60000]
@@ -39,7 +40,9 @@
  *   --collect        rebuild keys.txt from accounts.json
  *   --help
  *
- * Zero dependencies. Node.js >= 18.
+ * Zero dependencies. Node.js >= 18. Your proxy list is OPTIONAL: pass --pool
+ * (or the XLAPIS_PROXIES env) and every request goes through an exit from it;
+ * without a pool the tool connects directly.
  */
 
 const fs = require('fs');
@@ -92,10 +95,10 @@ if (has('help') || has('h')) {
   --host <name>  panel host                                [xlapis.com]
   --model <id>   pin the gate to one model            [cheapest priced]
   --group <name> pin the token group        [the model's own group]
-  --pool <file>  proxy list, one exit per line     (env XLAPIS_PROXIES)
+  --pool <file>  proxy list, one exit per line (env XLAPIS_PROXIES) [optional]
 
-Every request leaves through an exit from your pool; the tool never dials the
-panel directly.`);
+Requests go through your proxy list when one is provided (--pool / env). Without
+a pool the tool connects directly.`);
   process.exit(0);
 }
 
@@ -140,8 +143,10 @@ function say(msg) {
 function loadExits() {
   const file = path.resolve(ROOT, PROXY_FILE);
   if (!fs.existsSync(file)) {
-    console.error(`! proxy list not found: ${PROXY_FILE} (one exit per line: http://host:port)`);
-    process.exit(2);
+    // No pool = DIRECT mode: a proxy is recommended at scale (per-IP limits,
+    // bans) but the tool works without one. `null` is the direct sentinel.
+    console.log(`no proxy list at ${PROXY_FILE} — running WITHOUT a proxy (direct). Put exits there (or pass --pool) to route through them.`);
+    return [null];
   }
   const exits = fs
     .readFileSync(file, 'utf8')
@@ -151,8 +156,8 @@ function loadExits() {
     // a screened list may carry a trailing note (`http://host:port 1.2.3.4`)
     .map((s) => s.split(/\s+/)[0]);
   if (!exits.length) {
-    console.error(`! proxy list ${PROXY_FILE} is empty`);
-    process.exit(2);
+    console.log(`${PROXY_FILE} has no usable exits — running WITHOUT a proxy (direct).`);
+    return [null];
   }
   return exits;
 }
@@ -320,15 +325,24 @@ async function openTunnel(exit, host, port, timeoutMs) {
   return httpTunnel(exit, host, port, timeoutMs);
 }
 
+/** A raw socket straight to host:port (no proxy) — the direct-mode twin of openTunnel. */
+function directConnect(host, port, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const sock = net.connect({ host, port });
+    const t = setTimeout(() => { sock.destroy(); reject(new Error(`connect timeout (${host}:${port})`)); }, timeoutMs);
+    sock.once('error', (e) => { clearTimeout(t); try { sock.destroy(); } catch {} reject(new Error(`connect failed: ${e.message}`)); });
+    sock.once('connect', () => { clearTimeout(t); resolve(sock); });
+  });
+}
+
 /**
- * One HTTPS request through `exit`. No exit means no request: the rail never
- * dials the panel from your own line.
+ * One HTTPS request through `exit`, or straight to the panel when no exit is
+ * given (`null` = direct mode).
  */
 function exitRequest(exitLine, url, { method = 'GET', headers = {}, body = null, timeoutMs = TIMEOUT_MS } = {}) {
   return new Promise((resolve, reject) => {
-    const exit = parseExit(exitLine);
-    if (!exitLine) return reject(new Error('refusing a direct request: this attempt has no exit'));
-    if (!exit) return reject(new Error(`unparseable exit ${maskExit(exitLine)}`));
+    const exit = exitLine ? parseExit(exitLine) : null;
+    if (exitLine && !exit) return reject(new Error(`unparseable exit ${maskExit(exitLine)}`));
     const u = new URL(url);
     const payload =
       body === null || body === undefined ? null : Buffer.from(typeof body === 'string' ? body : JSON.stringify(body));
@@ -360,7 +374,8 @@ function exitRequest(exitLine, url, { method = 'GET', headers = {}, body = null,
       reject(e);
     };
     let tlsSock = null;
-    openTunnel(exit, u.hostname, Number(u.port || 443), Math.min(timeoutMs, 20000))
+    (exit ? openTunnel(exit, u.hostname, Number(u.port || 443), Math.min(timeoutMs, 20000))
+          : directConnect(u.hostname, Number(u.port || 443), Math.min(timeoutMs, 20000)))
       .then((tunnel) => {
         const leftover = tunnel.__leftover;
         tunnel.__leftover = Buffer.alloc(0);
