@@ -1,6 +1,7 @@
 <div align="center">
 
 ```
+
 ██╗  ██╗██╗      █████╗ ██████╗ ██╗███████╗
 ╚██╗██╔╝██║     ██╔══██╗██╔══██╗██║██╔════╝
  ╚███╔╝ ██║     ███████║██████╔╝██║███████╗
@@ -77,6 +78,7 @@ curl https://xlapis.com/v1/chat/completions \
 ## 🛠 Schnellstart
 
 ```bash
+
 # clone or fork this repository, then:
 cd xlapis-bulk-apikey
 
@@ -85,6 +87,7 @@ printf 'http://127.0.0.1:8080\n' > proxies.txt
 
 # 2) go
 node src/launcher.js              # interactive
+
 # or directly:
 node src/cli.js --count 50 --conc 2
 ```
@@ -157,7 +160,7 @@ Eine gescreente Liste kann eine nachgestellte Notiz tragen (`http://host:port 1.
 
 ## 🛰️ Hinter einem Proxy
 
-Jede Anfrage verlässt das System über einen Exit aus deinem Pool — das Tool wählt sich nie direkt zum Panel durch, und **ein Konto lebt auf einem Exit** für sein ganzes Leben (das Panel bindet die Sitzung an die IP). Gemessen auf der Flotte des Betreibers: 18 von 23 Exits konnten das Panel erreichen, und 3 Konten bei conc 2 erzeugten **3/3 Live-Schlüssel in 72 s** (≈20 s/Schlüssel).
+Jede Anfrage verlässt das System über einen Exit aus deinem Pool — das Tool wählt sich nie direkt zum Panel durch, und **ein Konto lebt auf einem Exit** für sein ganzes Leben (das Panel bindet die Sitzung an die IP). Gemessen auf der Flotte des Betreibers: 18 von 23 Exits konnten das Panel erreichen, und 3 Konten bei conc 2 erzeugten **verified-Schlüssel in 72 s** (≈20 s/Schlüssel).
 
 ## 📄 Dateien
 

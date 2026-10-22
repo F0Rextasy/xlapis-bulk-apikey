@@ -164,7 +164,7 @@ A screened list may carry a trailing note (`http://host:port 1.2.3.4`) — the l
 - **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly. Nothing about registration, key minting or the chat gate changes — only where the packets leave from.
 - Run `--screen` against either mode: it tests the exits you have (or the direct route) against the panel before a real run.
 
-Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **3/3 live keys in 72 s** (≈20 s/key).
+Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **verified keys in 72 s** (≈20 s/key).
 
 ## 📄 Files
 
