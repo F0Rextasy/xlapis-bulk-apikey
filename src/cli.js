@@ -59,6 +59,20 @@ const KEYS_FILE = path.join(ROOT, 'keys.txt');
 const UNGATED_FILE = path.join(ROOT, 'keys-ungated.txt');
 const ACCOUNTS_FILE = path.join(ROOT, 'accounts.json');
 
+/** Dead-key report: only definite rejections — 429/5xx/transport never land here. */
+const DEAD_FILE = path.join(ROOT, 'keys-dead.txt');
+const DEAD_STATUS = new Set([401, 403]);
+const DEAD_REASON = /banned|deactivated|disabled|suspended|quota|insufficient|forbidden|unauthorized/i;
+function recordDead(key, status, sample) {
+  if (!key) return;
+  if (!DEAD_STATUS.has(Number(status)) && !DEAD_REASON.test(String(sample || ''))) return;
+  const why = `${status}${sample ? ' ' + String(sample).replace(/\s+/g, ' ').slice(0, 60) : ''}`;
+  try {
+    fs.mkdirSync(path.dirname(DEAD_FILE), { recursive: true });
+    fs.appendFileSync(DEAD_FILE, `${key}\t${why}\t${new Date().toISOString()}\n`);
+  } catch (e) { /* diagnostics must never break the run */ }
+}
+
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36';
 
@@ -680,6 +694,7 @@ async function mintOne(exits, startExit, index, models) {
           say(`  ✓ #${index + 1} ${acct.username} → ${made.key.slice(0, 8)}…  quota ${acct.quota}  ${model.name} [${made.group}]  chat 200 ${gate.text}`);
           return rec;
         }
+        recordDead(made.key, gate.status, gate.error);
         last = { status: gate.status, error: `${model.name} [${made.group}]: ${gate.error}` };
         // 429 is a pace signal, not a dead key: wait it out and stay on this model
         if (gate.status === 429) {
@@ -810,6 +825,7 @@ async function verifyOnly(exits) {
     const exitLine = exits[i % exits.length];
     let ok = false;
     let note = '';
+    let status = 0;
     for (const model of order) {
       try {
         const gate = await chatGate(exits, exitLine, keys[i], model.name);
@@ -818,6 +834,7 @@ async function verifyOnly(exits) {
           note = `${model.name} ${gate.status} ${gate.text}`;
           break;
         }
+        status = gate.status;
         note = `${model.name} HTTP ${gate.status} ${gate.error}`;
       } catch (e) {
         note = e.message;
@@ -827,6 +844,7 @@ async function verifyOnly(exits) {
       live.push(keys[i]);
       say(`  ✓ ${keys[i].slice(0, 8)}… ${note}`);
     } else {
+      recordDead(keys[i], status, note);
       dead.push(keys[i]);
       say(`  ✗ ${keys[i].slice(0, 8)}… ${note}`);
     }
