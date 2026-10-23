@@ -21,7 +21,7 @@
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 Quick start](#-quick-start) · [🎁 Free tier](#-free-tier--how-much-you-get) · [🤖 Models](#-models--all-16-of-them) · [🧪 Use the API](#-how-to-use-the-api) · [✅ Verified](#-verified-working--every-key-is-tested) · [🧭 How it works](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ Options](#️-cli-options) · [🛰️ Proxies](#️-behind-a-proxy) · [🐞 Issues](#-issues)
+[🛠 Quick start](#-quick-start) · [🎁 Free tier](#-free-tier--how-much-you-get) · [🤖 Models](#-models--all-16-of-them) · [🧪 Use the API](#-how-to-use-the-api) · [✅ Verified](#-verified-working--every-key-is-tested) · [🧭 How it works](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ Options](#️-cli-options) · [🛰️ Proxies](#️-behind-a-proxy) · [🐞 Issues](#-issues)
 
 </div>
 
@@ -35,7 +35,7 @@
 
 ## ✨ Why this exists
 
-Xlapis is a New-API panel whose door is a **"nofield" one**: `POST /api/user/register` takes a username and a password and **no mailbox at all** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). The catch is on the other side of the door — the `default` group has **no channel** for the cheap models, so a token created there answers `503 No available channel for model … under group default`. This tool therefore **binds the token to the model's own group** (`enable_groups[0]` from `/api/pricing`) and walks the cheapest priced models until the chat answers 200. The unit that scales is *one account per key*: 63 keys on the operator's fleet (60 from the mint rail, 3 minted by the shipped CLI while it was verified), every one proven by a live chat call.
+Xlapis is a New-API panel whose door is a **"nofield" one**: `POST /api/user/register` takes a username and a password and **no mailbox at all** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). The catch is on the other side of the door — the `default` group has **no channel** for the cheap models, so a token created there answers `503 No available channel for model … under group default`. This tool therefore **binds the token to the model's own group** (`enable_groups[0]` from `/api/pricing`) and walks the cheapest priced models until the chat answers 200. The unit that scales is *one account per key*: keys on the operator's fleet (60 from the mint rail, 3 minted by the shipped CLI while it was verified), every one proven by a live chat call.
 
 ## 🎁 Free tier — how much you get
 
@@ -64,7 +64,7 @@ The panel prices **18 ids**, of which **16 are chat-capable and carry an enabled
 | --- | --- | --- | --- |
 | `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | the cheapest chat id — the gate stops here on every account |
 
-Ids the panel offers with an enabled group - pinned one by one (3 keys each, --verify-only --model id) - and none of them answered on itself: every key fell through to deepseek-v4.1-flash. They stay in the gate fallback order and out of the verified table. The `default` group serves none of them.
+Ids the panel offers with an enabled group - pinned one by one (keys each, --verify-only --model id) - and none of them answered on itself: every key fell through to deepseek-v4.1-flash. They stay in the gate fallback order and out of the verified table. The `default` group serves none of them.
 
 ## 🧪 How to use the API
 
@@ -107,11 +107,6 @@ The launcher asks for the proxy list, count and model, remembers them in `launch
 
 ## ✅ Verified working — every key is tested
 
-> **Quality gates.** Every key here passed a live `chat-200` before it was written to `keys.txt`
-> (dead keys are never shipped). Router combos follow the same rule at the model level: an entry is
-> added **only if the model answers `chat-200` and can call tools** — a model without tool support,
-> a dead key or a dead provider is dropped instead of added. Works with **9Router and OmniRoute**.
-
 | Check | Result |
 | --- | --- |
 | `GET /api/status` | **200** — `XL API`, `password_register_enabled: true`, `email_verification: false`, `turnstile_check: false` |
@@ -122,6 +117,12 @@ The launcher asks for the proxy list, count and model, remembers them in `launch
 | `POST /api/token/` → `POST /api/token/<id>/key` | token created **inside the model's group**, plaintext key revealed |
 | `POST /v1/chat/completions` — run for **every** key before it is written | **200** with real content (`choices`, no `error`) |
 | a key that fails its chat check | never written to `keys.txt` |
+
+> **Quality gates.** Every key here passed a live `chat-200` before it was written to `keys.txt`
+> (dead keys are never shipped). Router combos follow the same rule at the model level: an entry is
+> added **only if the model answers `chat-200` and can call tools** — a model without tool support,
+> a dead key or a dead provider is dropped instead of added. Re-run the verify step any time;
+> failures are reported, never hidden.
 
 ## 🧭 How it works
 
@@ -156,7 +157,7 @@ node src/cli.js [mode] [flags]
 | `--host <name>` | `xlapis.com` | panel host (the same rail runs on mirrors of this panel) |
 | `--model <id>` | cheapest priced | pin the gate to one model id |
 | `--group <name>` | the model's group | pin the token group |
-| `--pool <file>` | `proxies.txt` | proxy list (`XLAPIS_PROXIES` env works too) — **optional**, without it the tool connects directly |
+| `--pool <file>` | `proxies.txt` | proxy list (`XLAPIS_PROXIES` env works too) |
 | `--gap MS` | 800 | pause between models inside one account |
 | `--tries N` | 2 | exits tried per account |
 
@@ -170,7 +171,7 @@ A screened list may carry a trailing note (`http://host:port 1.2.3.4`) — the l
 - **Without a pool:** the CLI prints `running WITHOUT a proxy (direct)` and connects directly. Nothing about registration, key minting or the chat gate changes — only where the packets leave from.
 - Run `--screen` against either mode: it tests the exits you have (or the direct route) against the panel before a real run.
 
-Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **verified keys in 72 s** (≈20 s/key).
+Measured on the operator's fleet: 18 of 23 exits could reach the panel, and 3 accounts at conc 2 produced **verified working keys in 72 s** (≈20 s/key).
 
 ## 📄 Files
 
@@ -200,6 +201,7 @@ node src/connect-omniroute.js
 ```
 
 Defaults: `--base http://localhost:20128`, `--password 123456`, `--name "Xlapis"`, `--prefix xlapis`, `--base-url https://xlapis.com/v1`.
+
 ## 🔑 What one key gets you
 
 | | |

@@ -1,7 +1,6 @@
 <div align="center">
 
 ```
-
 ██╗  ██╗██╗      █████╗ ██████╗ ██╗███████╗
 ╚██╗██╔╝██║     ██╔══██╗██╔══██╗██║██╔════╝
  ╚███╔╝ ██║     ███████║██████╔╝██║███████╗
@@ -12,7 +11,7 @@
 
 # xlapis-bulk-apikey
 
-**Xlapis-Konten im Bulk erstellen mit automatisch generierten API-Schlüsseln — OpenAI-kompatible Inferenz + 9Router-Connector.**
+**Xlapis-Konten in großen Mengen erstellen mit automatisch generierten API-Schlüsseln — OpenAI-kompatible Inferenz + 9Router-Konnektor.**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue?style=for-the-badge)](#)
@@ -22,7 +21,7 @@
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 Schnellstart](#-quick-start) · [🎁 Kostenloser Tarif](#-free-tier--how-much-you-get) · [🤖 Modelle](#-models--all-16-of-them) · [🧪 Die API nutzen](#-how-to-use-the-api) · [✅ Verifiziert](#-verified-working--every-key-is-tested) · [🧭 So funktioniert es](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ Optionen](#️-cli-options) · [🛰️ Proxys](#️-behind-a-proxy) · [🐞 Issues](#-issues)
+[🛠 Schnellstart](#-quick-start) · [🎁 Kostenlose Stufe](#-free-tier--how-much-you-get) · [🤖 Modelle](#-models--all-16-of-them) · [🧪 Die API verwenden](#-how-to-use-the-api) · [✅ Verifiziert](#-verified-working--every-key-is-tested) · [🧭 So funktioniert es](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ Optionen](#️-cli-options) · [🛰️ Proxys](#️-behind-a-proxy) · [🐞 Probleme](#-issues)
 
 </div>
 
@@ -36,9 +35,9 @@
 
 ## ✨ Warum es das gibt
 
-Xlapis ist ein New-API-Panel, dessen Tür eine **„nofield"-Tür** ist: `POST /api/user/register` nimmt einen Benutzernamen und ein Passwort und **überhaupt keine Mailbox** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). Der Haken liegt auf der anderen Seite der Tür — die Gruppe `default` hat **keinen Kanal** für die günstigen Modelle, sodass ein dort erstelltes Token mit `503 No available channel for model … under group default` antwortet. Dieses Tool **bindet das Token daher an die Gruppe des Modells selbst** (`enable_groups[0]` aus `/api/pricing`) und geht die günstigsten bepreisten Modelle durch, bis der Chat mit 200 antwortet. Die Einheit, die skaliert, ist *ein Konto pro Schlüssel*: 63 Schlüssel auf der Flotte des Betreibers (60 aus der Mint-Rail, 3 vom mitgelieferten CLI erzeugt, während es verifiziert wurde), jeder einzelne durch einen Live-Chat-Aufruf bewiesen.
+Xlapis ist ein New-API-Panel, dessen Tür eine **„nofield"-Tür** ist: `POST /api/user/register` nimmt einen Benutzernamen und ein Passwort und **überhaupt keine Mailbox** (`GET /api/status` → `email_verification: false`, `turnstile_check: false`). Der Haken liegt auf der anderen Seite der Tür — die Gruppe `default` hat **keinen Kanal** für die günstigen Modelle, sodass ein dort erstelltes Token mit `503 No available channel for model … under group default` antwortet. Dieses Tool **bindet das Token daher an die eigene Gruppe des Modells** (`enable_groups[0]` aus `/api/pricing`) und geht die günstigsten bepreisten Modelle durch, bis der Chat mit 200 antwortet. Die Einheit, die skaliert, ist *ein Konto pro Schlüssel*: Schlüssel auf der Flotte des Betreibers (60 aus der Mint-Schiene, 3 vom mitgelieferten CLI erzeugt, während es verifiziert wurde), jeder einzelne durch einen Live-Chat-Aufruf bewiesen.
 
-## 🎁 Kostenloser Tarif — wie viel du bekommst
+## 🎁 Kostenlose Stufe — wie viel du bekommst
 
 **Keine Mailbox, kein Captcha** — das Konto ist das Kostenlose, und das Token wird mit `unlimited_quota: true` erstellt.
 
@@ -47,27 +46,27 @@ Xlapis ist ein New-API-Panel, dessen Tür eine **„nofield"-Tür** ist: `POST /
 | Karte erforderlich | **Nein** |
 | Captcha / Turnstile | **keines** (`turnstile_check: false`) |
 | Mailbox | **nicht verwendet** — der Register-Aufruf sendet nur `{username, password}` |
-| Anmeldeguthaben | gemessene **500** Konto-Quota bei 3 vom CLI erzeugten Konten (≈ $0.001 — das Gate läuft über `unlimited_quota`, nicht über das Guthaben) |
+| Anmeldeguthaben | gemessen **500** Kontokontingent bei 3 vom CLI erzeugten Konten (≈ $0,001 — das Gate läuft auf `unlimited_quota`, nicht auf Guthaben) |
 | Kanal-Gate | das Modell muss in einer Gruppe angefragt werden, die es bedient; `default` antwortet mit `503` |
 | Die Einheit, die skaliert | **ein Konto = ein Schlüssel** → `--count N` bedeutet „N Konten" |
 
-> 💡 Der kostenlose Tarif wird von Xlapis festgelegt und kann sich ändern. Prüfe die aktuellen Zahlen auf [xlapis.com](https://xlapis.com) — und lass das Gate des Tools selbst entscheiden:
+> 💡 Die kostenlose Stufe wird von Xlapis festgelegt und kann sich ändern. Prüfe die Live-Zahlen auf [xlapis.com](https://xlapis.com) — und lass das Gate des Tools selbst entscheiden:
 
 ```bash
 node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
 ```
 
-## 🤖 Modelle — alle 16
+## 🤖 Modelle — alle 16 davon
 
-Das Panel bepreist **18 IDs**, von denen **16 chat-fähig sind und eine aktivierte Gruppe tragen** (zwei `seedance-*`-Video-IDs in der Gruppe `视频模型` werden übersprungen — ein reiner Namensfilter geht sie zuerst durch und verschwendet das Konto). Nur IDs, die mit einem echten Schlüssel live mit **200** geantwortet haben, sind aufgeführt:
+Das Panel bepreist **18 IDs**, von denen **16 chat-fähig sind und eine aktivierte Gruppe tragen** (zwei `seedance-*`-Video-IDs in der Gruppe `视频模型` werden übersprungen — ein Filter nur nach Namen geht sie zuerst durch und verschwendet das Konto). Nur IDs, die mit einem echten Schlüssel live mit **200** geantwortet haben, sind aufgeführt:
 
 | Modell-ID | ✓ | Gruppe | Hinweise |
 | --- | --- | --- | --- |
-| `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | die günstigste Chat-ID — hier stoppt das Gate bei jedem Konto |
+| `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | die günstigste Chat-ID — das Gate stoppt hier bei jedem Konto |
 
-IDs, die das Panel mit einer aktivierten Gruppe anbietet – einzeln festgenagelt (je 3 Schlüssel, --verify-only --model id) – und keine von ihnen antwortete für sich selbst: jeder Schlüssel fiel auf deepseek-v4.1-flash durch. Sie bleiben in der Fallback-Reihenfolge des Gates und außerhalb der verifizierten Tabelle. Die Gruppe `default` bedient keine von ihnen.
+IDs, die das Panel mit einer aktivierten Gruppe anbietet - einzeln festgenagelt (Schlüssel jeweils, --verify-only --model id) - und keine davon antwortete für sich selbst: jeder Schlüssel fiel auf deepseek-v4.1-flash durch. Sie bleiben in der Fallback-Reihenfolge des Gates und außerhalb der verifizierten Tabelle. Die Gruppe `default` bedient keine davon.
 
-## 🧪 Die API nutzen
+## 🧪 Die API verwenden
 
 ```bash
 curl https://xlapis.com/v1/chat/completions \
@@ -83,29 +82,29 @@ curl https://xlapis.com/v1/chat/completions \
 # clone or fork this repository, then:
 cd xlapis-bulk-apikey
 
-# 1) your proxy list, one per line (http://… or socks5://…)
+# 1) optional: your proxy list, one per line (http://… or socks5://…)
 printf 'http://127.0.0.1:8080\n' > proxies.txt
+#    (skip this — without a pool the tool connects directly)
 
 # 2) go
 node src/launcher.js              # interactive
-
 # or directly:
 node src/cli.js --count 50 --conc 2
 ```
 
-`keys.txt` wird **erst** geschrieben, nachdem eine Live-Chat-Vervollständigung den Schlüssel beweist.
+`keys.txt` wird **erst** geschrieben, nachdem eine Live-Chat-Vervollständigung den Schlüssel bewiesen hat.
 
 | Modus | Was er tut |
 | --- | --- |
 | `run` (Standard) | Konten erzeugen bis `--count`, jeden Schlüssel mit einem Live-Chat durch das Gate schicken |
 | `--verify-only` | `keys.txt` erneut durchgehen und alles, was fehlschlägt, nach `keys-ungated.txt` verschieben |
-| `--screen` | deine Proxy-Liste gegen das Panel testen → `proxies.live.txt` |
-| `--probe` | Umgebungsprüfung: Panel-Flags, Preisgestaltung, Gate-Reihenfolge, Exits |
+| `--screen` | deine Proxy-Liste (oder die direkte Route) gegen das Panel testen → `proxies.live.txt` |
+| `--probe` | Umgebungsprüfung: Panel-Flags, Preisgestaltung, Gate-Reihenfolge, Ausgänge |
 | `--collect` | `keys.txt` aus `accounts.json` neu aufbauen (jede Zeile mit `chat_status: 200`) |
 
 ### 🖱️ Der Launcher
 
-Der Launcher fragt nach Proxy-Liste, Anzahl und Modell, merkt sie sich in `launcher.config.json` und führt das CLI mit den richtigen Flags aus.
+Der Launcher fragt nach der Proxy-Liste, der Anzahl und dem Modell, merkt sie sich in `launcher.config.json` und führt das CLI mit den richtigen Flags aus.
 
 ## ✅ Verifiziert funktionierend — jeder Schlüssel wird getestet
 
@@ -115,10 +114,17 @@ Der Launcher fragt nach Proxy-Liste, Anzahl und Modell, merkt sie sich in `launc
 | `GET /api/pricing` | **200** — 18 bepreiste IDs, **16 chat-fähig mit einer aktivierten Gruppe**; günstigste Chat-ID ist `deepseek-v4.1-flash` |
 | `POST /api/user/register` | **200** `{username,password}` — keine Mailbox, kein Captcha (503 wird zweimal wiederholt, dann wird der Aufruf mit einem E-Mail-Feld wiederholt) |
 | `POST /api/user/login` | **200** — `access_token` (Cookie + `New-Api-User`-Fallback für ältere Forks) |
-| `GET /api/user/self` | **200** — Quota 500 bei einem frischen Konto |
+| `GET /api/user/self` | **200** — Kontingent 500 bei einem frischen Konto |
 | `POST /api/token/` → `POST /api/token/<id>/key` | Token **innerhalb der Gruppe des Modells** erstellt, Klartext-Schlüssel offengelegt |
 | `POST /v1/chat/completions` — für **jeden** Schlüssel ausgeführt, bevor er geschrieben wird | **200** mit echtem Inhalt (`choices`, kein `error`) |
 | ein Schlüssel, der seine Chat-Prüfung nicht besteht | wird nie in `keys.txt` geschrieben |
+
+> **Qualitätsgates.** Jeder Schlüssel hier hat ein Live-`chat-200` bestanden, bevor er in `keys.txt`
+> geschrieben wurde (tote Schlüssel werden nie ausgeliefert). Router-Kombinationen folgen derselben Regel
+> auf Modellebene: ein Eintrag wird **nur hinzugefügt, wenn das Modell `chat-200` antwortet und Tools
+> aufrufen kann** — ein Modell ohne Tool-Unterstützung, ein toter Schlüssel oder ein toter Anbieter wird
+> verworfen statt hinzugefügt. Führe den Verifizierungsschritt jederzeit erneut aus; Fehler werden
+> gemeldet, nie versteckt.
 
 ## 🧭 So funktioniert es
 
@@ -134,10 +140,10 @@ inbox (one address per account)                                  a fresh address
 | Schritt | Aufruf | Hinweise |
 | --- | --- | --- |
 | Registrierung | `POST /api/user/register {username,password}` | kein E-Mail-Feld; ein 5xx wird nach 2,5 s wiederholt, dann wird der Aufruf mit einer Adresse wiederholt |
-| Login | `POST /api/user/login {username,password}` | `access_token`, plus das Session-Cookie für Forks, die nur ein Cookie zurückgeben |
-| Konto | `GET /api/user/self` | ID + Quota |
+| Anmeldung | `POST /api/user/login {username,password}` | `access_token`, plus das Session-Cookie für Forks, die nur ein Cookie zurückgeben |
+| Konto | `GET /api/user/self` | ID + Kontingent |
 | Preisgestaltung | `GET /api/pricing` | günstigstes Chat-Modell und seine `enable_groups[0]` — die Gruppe, in der das Token leben muss |
-| Schlüssel | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`; die Gruppe ist das, was ihn antworten lässt |
+| Schlüssel | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`; die Gruppe ist das, was es antworten lässt |
 | Prüfung | `POST /v1/chat/completions` | Live-200 erforderlich vor `keys.txt`; ein 429 ist ein Tempо-Signal (2,5 s warten, dasselbe Modell erneut versuchen) |
 
 ## ⚙️ CLI-Optionen
@@ -149,32 +155,38 @@ node src/cli.js [mode] [flags]
 | Flag | Standard | Bedeutung |
 | --- | --- | --- |
 | `--count N` | 10 | Konten (= Schlüssel), die erzeugt werden sollen |
-| `--conc N` | 2 | Konten gleichzeitig in Bearbeitung (max. 16) — ein Exit ist pro Worker festgenagelt |
-| `--host <name>` | `xlapis.com` | Panel-Host (dieselbe Rail läuft auf Mirrors dieses Panels) |
-| `--model <id>` | günstigstes bepreistes | das Gate auf eine Modell-ID festnageln |
-| `--group <name>` | die Gruppe des Modells | die Token-Gruppe festnageln |
+| `--conc N` | 2 | Konten gleichzeitig in Bearbeitung (max. 16) — pro Worker ist ein Ausgang festgelegt |
+| `--host <name>` | `xlapis.com` | Panel-Host (dieselbe Schiene läuft auf Mirrors dieses Panels) |
+| `--model <id>` | günstigstes bepreistes | das Gate auf eine Modell-ID festlegen |
+| `--group <name>` | die Gruppe des Modells | die Token-Gruppe festlegen |
 | `--pool <file>` | `proxies.txt` | Proxy-Liste (die Umgebungsvariable `XLAPIS_PROXIES` funktioniert ebenfalls) |
 | `--gap MS` | 800 | Pause zwischen Modellen innerhalb eines Kontos |
-| `--tries N` | 2 | pro Konto versuchte Exits |
+| `--tries N` | 2 | pro Konto versuchte Ausgänge |
 
 Eine gescreente Liste kann eine nachgestellte Notiz tragen (`http://host:port 1.2.3.4`) — der Loader behält die erste Spalte.
 
 ## 🛰️ Hinter einem Proxy
 
-Jede Anfrage verlässt das System über einen Exit aus deinem Pool — das Tool wählt sich nie direkt zum Panel durch, und **ein Konto lebt auf einem Exit** für sein ganzes Leben (das Panel bindet die Sitzung an die IP). Gemessen auf der Flotte des Betreibers: 18 von 23 Exits konnten das Panel erreichen, und 3 Konten bei conc 2 erzeugten **verified-Schlüssel in 72 s** (≈20 s/Schlüssel).
+**Optional — bei Skalierung empfohlen (Limits pro IP, Sperren).** Das Tool funktioniert auch ohne Proxy.
+
+- **Mit einem Pool:** übergib `--pool <file>` (oder setze `XLAPIS_PROXIES`), und jede Anfrage geht durch einen Ausgang aus dieser Liste — **ein Konto lebt auf einem Ausgang** für sein ganzes Leben (das Panel bindet die Sitzung an die IP), und eine tote Leitung lässt diesen Versuch fehlschlagen, sodass das Tool zum nächsten übergeht.
+- **Ohne einen Pool:** das CLI gibt `running WITHOUT a proxy (direct)` aus und verbindet direkt. An der Registrierung, der Schlüsselerzeugung oder dem Chat-Gate ändert sich nichts — nur daran, wo die Pakete hinausgehen.
+- Führe `--screen` gegen beide Modi aus: es testet die Ausgänge, die du hast (oder die direkte Route), gegen das Panel, bevor ein echter Lauf startet.
+
+Gemessen auf der Flotte des Betreibers: 18 von 23 Ausgängen konnten das Panel erreichen, und 3 Konten bei conc 2 erzeugten **verifiziert funktionierende Schlüssel in 72 s** (≈20 s/Schlüssel).
 
 ## 📄 Dateien
 
 | Pfad | Inhalt |
 | --- | --- |
-| `keys.txt` | Chat-200-Schlüssel, einer pro Zeile — von Git ignoriert |
+| `keys.txt` | chat-200-Schlüssel, einer pro Zeile — von Git ignoriert |
 | `keys-ungated.txt` | Schlüssel, die den letzten `--verify-only`-Durchlauf nicht bestanden haben — später erneut versuchen |
-| `accounts.json` | Benutzername / Quota / Gruppe / Modell / Chat-Status pro Konto — von Git ignoriert |
-| `proxies.txt` | deine Exit-Liste — von Git ignoriert |
+| `accounts.json` | Benutzername / Kontingent / Gruppe / Modell / Chat-Status pro Konto — von Git ignoriert |
+| `proxies.txt` | deine Ausgangsliste — von Git ignoriert |
 
 ## 🔌 Mit 9Router verbinden
 
-[9Router](https://9router.com) ist ein selbst gehosteter, OpenAI-kompatibler Router. Ein Befehl verwandelt `keys.txt` in einen Provider-Node mit funktionierenden Kombos:
+[9Router](https://9router.com) ist ein selbst gehosteter, OpenAI-kompatibler Router. Ein Befehl verwandelt `keys.txt` in einen Provider-Node mit funktionierenden Kombinationen:
 
 ```bash
 node src/connect-9router.js
@@ -184,26 +196,27 @@ Standardwerte: `--base http://localhost:20128`, `--password 123456`, `--name "Xl
 
 ## 🔌 Mit OmniRoute verbinden
 
-[OmniRoute](https://omniroute.online) ist ein selbst gehosteter, OpenAI-kompatibler Router. Ein Befehl verwandelt `keys.txt` in einen Provider-Node mit funktionierenden Kombos:
+[OmniRoute](https://omniroute.online) ist ein selbst gehosteter, OpenAI-kompatibler Router. Ein Befehl verwandelt `keys.txt` in einen Provider-Node mit funktionierenden Kombinationen:
 
 ```bash
 node src/connect-omniroute.js
 ```
 
 Standardwerte: `--base http://localhost:20128`, `--password 123456`, `--name "Xlapis"`, `--prefix xlapis`, `--base-url https://xlapis.com/v1`.
+
 ## 🔑 Was ein Schlüssel dir bringt
 
 | | |
 | --- | --- |
 | 🏢 Anbieter | **Xlapis** — [xlapis.com](https://xlapis.com) |
-| 🎁 Was der Anbieter gibt | ein Konto pro Schlüssel — mailboxfreie Registrierung, gruppengebundenes Token, jeder Schlüssel chat-verifiziert |
-| 🔑 Was ein Schlüssel dir bringt | einen API-Schlüssel, der auf sein eigenes Konto beschränkt ist: die 16 Modell-IDs am unten stehenden Endpunkt, im Rahmen der Limits deines Tarifs. Die Quota liegt auf dem **Konto**, weshalb dieses Tool genau ein Konto pro Schlüssel erstellt |
+| 🎁 Was der Anbieter gibt | ein Konto pro Schlüssel — mailboxfreie Anmeldung, gruppengebundenes Token, jeder Schlüssel chat-verifiziert |
+| 🔑 Was ein Schlüssel dir bringt | einen API-Schlüssel, der auf sein eigenes Konto beschränkt ist: die 16 Modell-IDs am unten stehenden Endpunkt, im Rahmen der Limits deines Tarifs. Das Kontingent liegt auf dem **Konto**, weshalb dieses Tool genau ein Konto pro Schlüssel erstellt |
 | 🌐 API-Form | OpenAI-kompatibel: `POST https://xlapis.com/v1/chat/completions` |
 | 🔒 Deine Daten | nur xlapis.com und das von dir konfigurierte Inbox-Backend werden kontaktiert; Schlüssel bleiben auf deinem Rechner |
 
-## 🐞 Issues
+## 🐞 Probleme
 
-Wenn das Panel seine Tür, seine Gruppenliste oder seine Kanalzuordnung ändert, stoppt das Tool an diesem Schritt und sagt es dir (`--probe` zeigt, was es sieht). **[Öffne ein Issue](../../issues)** mit dem Befehl, den du ausgeführt hast, und der exakten Ausgabe; PRs sind willkommen.
+Wenn das Panel seine Tür, seine Gruppenliste oder seine Kanalzuordnung ändert, stoppt das Tool an diesem Schritt und sagt es (`--probe` zeigt, was es sieht). **[Öffne ein Issue](../../issues)** mit dem Befehl, den du ausgeführt hast, und der genauen Ausgabe; PRs sind willkommen.
 
 ## 📄 Lizenz
 

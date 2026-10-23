@@ -1,7 +1,6 @@
 <div align="center">
 
 ```
-
 ██╗  ██╗██╗      █████╗ ██████╗ ██╗███████╗
 ╚██╗██╔╝██║     ██╔══██╗██╔══██╗██║██╔════╝
  ╚███╔╝ ██║     ███████║██████╔╝██║███████╗
@@ -22,7 +21,7 @@
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 快速开始](#-quick-start) · [🎁 免费额度](#-free-tier--how-much-you-get) · [🤖 模型](#-models--all-16-of-them) · [🧪 使用 API](#-how-to-use-the-api) · [✅ 已验证](#-verified-working--every-key-is-tested) · [🧭 工作原理](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [⚙️ 选项](#️-cli-options) · [🛰️ 代理](#️-behind-a-proxy) · [🐞 问题反馈](#-issues)
+[🛠 快速开始](#-quick-start) · [🎁 免费额度](#-free-tier--how-much-you-get) · [🤖 模型](#-models--all-16-of-them) · [🧪 使用 API](#-how-to-use-the-api) · [✅ 已验证](#-verified-working--every-key-is-tested) · [🧭 工作原理](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ 选项](#️-cli-options) · [🛰️ 代理](#️-behind-a-proxy) · [🐞 问题反馈](#-issues)
 
 </div>
 
@@ -34,24 +33,24 @@
 
 ---
 
-## ✨ 为什么有这个工具
+## ✨ 为什么会有这个项目
 
-Xlapis 是一个 New-API 面板，它的入口是一扇 **“无字段”之门**：`POST /api/user/register` 只需要用户名和密码，**完全不需要邮箱**（`GET /api/status` → `email_verification: false`，`turnstile_check: false`）。问题出在门的另一侧 —— `default` 分组对便宜模型**没有任何渠道**，因此在那里创建的令牌会返回 `503 No available channel for model … under group default`。所以本工具会**将令牌绑定到模型自身所属的分组**（来自 `/api/pricing` 的 `enable_groups[0]`），并依次尝试价格最低的模型，直到聊天接口返回 200。可扩展的单位是*每个密钥一个账户*：运营者的集群上有 63 个密钥（60 个来自铸造流水线，3 个由随附的 CLI 在验证时铸造），每一个都通过实时聊天调用得到验证。
+Xlapis 是一个 New-API 面板，它的入口是**“无字段”式**的：`POST /api/user/register` 只需要用户名和密码，**完全不需要邮箱**（`GET /api/status` → `email_verification: false`，`turnstile_check: false`）。问题出在门的另一侧——`default` 分组**没有**廉价模型的渠道，因此在那里创建的令牌会返回 `503 No available channel for model … under group default`。所以本工具会**把令牌绑定到模型自身所属的分组**（来自 `/api/pricing` 的 `enable_groups[0]`），并依次尝试价格最低的模型，直到聊天接口返回 200。可扩展的单位是*每个密钥一个账户*：运营方机群上的密钥（铸造通道产出 60 个，验证期间随附的 CLI 又铸造了 3 个），每一个都经过实时聊天调用验证。
 
-## 🎁 免费额度 — 你能获得多少
+## 🎁 免费额度 — 你能得到多少
 
-**无需邮箱，无需验证码** —— 账户本身就是免费的东西，而令牌以 `unlimited_quota: true` 创建。
+**无需邮箱，无需验证码** — 账户本身就是免费的东西，而令牌创建时带有 `unlimited_quota: true`。
 
 | 项目 | 值 |
 | --- | --- |
-| 需要银行卡 | **否** |
+| 是否需要银行卡 | **否** |
 | 验证码 / Turnstile | **无**（`turnstile_check: false`） |
-| 邮箱 | **不使用** —— 注册调用只发送 `{username, password}` |
-| 注册赠送额度 | 在 3 个 CLI 铸造的账户上测得 **500** 账户配额（约 $0.001 —— 关卡依赖 `unlimited_quota`，而非额度） |
-| 渠道关卡 | 必须在提供该模型的分组中请求该模型；`default` 返回 `503` |
+| 邮箱 | **不使用** — 注册调用只发送 `{username, password}` |
+| 注册赠送额度 | 在 3 个 CLI 铸造的账户上测得 **500** 账户配额（约 $0.001 — 门槛依赖 `unlimited_quota`，而非额度） |
+| 渠道门槛 | 必须在提供该模型的分组中请求该模型；`default` 返回 `503` |
 | 可扩展的单位 | **一个账户 = 一个密钥** → `--count N` 即“N 个账户” |
 
-> 💡 免费额度由 Xlapis 设定，可能会变化。请到 [xlapis.com](https://xlapis.com) 查看实时数字 —— 并让工具自身的关卡来做判断：
+> 💡 免费额度由 Xlapis 设定，可能发生变化。请到 [xlapis.com](https://xlapis.com) 查看实时数据——并让工具自身的门槛来判定：
 
 ```bash
 node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
@@ -59,13 +58,13 @@ node src/cli.js --verify-only     # every key in keys.txt is re-tested with a re
 
 ## 🤖 模型 — 全部 16 个
 
-面板为 **18 个 id** 定价，其中 **16 个支持聊天并带有已启用的分组**（分组 `视频模型` 中的两个 `seedance-*` 视频 id 被跳过 —— 仅按名称过滤会先遍历它们并浪费账户）。只有用真实密钥返回实时 **200** 的 id 才被列出：
+面板定价了 **18 个 id**，其中 **16 个支持聊天并带有已启用的分组**（分组 `视频模型` 中的两个 `seedance-*` 视频 id 被跳过——仅按名称过滤会先遍历它们并浪费账户）。下表只列出用真实密钥返回实时 **200** 的 id：
 
 | 模型 ID | ✓ | 分组 | 备注 |
 | --- | --- | --- | --- |
-| `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | 最便宜的聊天 id —— 每个账户的关卡都在此停下 |
+| `deepseek-v4.1-flash` | ✓ | `Deepseek-CHAT-周卡日卡专区1` | 最便宜的聊天 id — 每个账户的门槛都在此停下 |
 
-面板提供的带有已启用分组的 id —— 逐一固定测试（每个 3 个密钥，--verify-only --model id）—— 没有一个能靠自身返回结果：每个密钥都回落到 deepseek-v4.1-flash。它们保留在关卡的回退顺序中，但不在已验证表中。`default` 分组不提供其中任何一个。
+面板提供且带有已启用分组的 id——逐一固定测试（每个密钥，--verify-only --model id）——它们自身都没有响应：每个密钥都回落到 deepseek-v4.1-flash。它们保留在门槛回退顺序中，但不进入已验证表格。`default` 分组不提供其中任何一个。
 
 ## 🧪 如何使用 API
 
@@ -83,29 +82,29 @@ curl https://xlapis.com/v1/chat/completions \
 # clone or fork this repository, then:
 cd xlapis-bulk-apikey
 
-# 1) your proxy list, one per line (http://… or socks5://…)
+# 1) optional: your proxy list, one per line (http://… or socks5://…)
 printf 'http://127.0.0.1:8080\n' > proxies.txt
+#    (skip this — without a pool the tool connects directly)
 
 # 2) go
 node src/launcher.js              # interactive
-
 # or directly:
 node src/cli.js --count 50 --conc 2
 ```
 
-`keys.txt` **只有**在实时聊天补全证明密钥有效后才会写入。
+`keys.txt` **只有**在实时聊天补全证明该密钥有效后才会写入。
 
 | 模式 | 作用 |
 | --- | --- |
-| `run`（默认） | 铸造账户直到达到 `--count`，用实时聊天对每个密钥进行关卡验证 |
+| `run`（默认） | 铸造账户直到达到 `--count`，用实时聊天验证每个密钥 |
 | `--verify-only` | 重新扫描 `keys.txt`，将失败项移入 `keys-ungated.txt` |
-| `--screen` | 用你的代理列表测试面板 → `proxies.live.txt` |
-| `--probe` | 环境检查：面板标志、定价、关卡顺序，然后退出 |
-| `--collect` | 从 `accounts.json` 重建 `keys.txt`（每一行 `chat_status: 200`） |
+| `--screen` | 用你的代理列表（或直连线路）测试面板 → `proxies.live.txt` |
+| `--probe` | 环境检查：面板标志、定价、门槛顺序、出口 |
+| `--collect` | 从 `accounts.json` 重建 `keys.txt`（每个 `chat_status: 200` 的行） |
 
 ### 🖱️ 启动器
 
-启动器会询问代理列表、数量和模型，将它们记入 `launcher.config.json`，并用正确的标志运行 CLI。
+启动器会询问代理列表、数量和模型，将它们记录在 `launcher.config.json` 中，并用正确的标志运行 CLI。
 
 ## ✅ 已验证可用 — 每个密钥都经过测试
 
@@ -113,12 +112,16 @@ node src/cli.js --count 50 --conc 2
 | --- | --- |
 | `GET /api/status` | **200** — `XL API`，`password_register_enabled: true`，`email_verification: false`，`turnstile_check: false` |
 | `GET /api/pricing` | **200** — 18 个定价 id，**16 个支持聊天并带有已启用分组**；最便宜的聊天 id 是 `deepseek-v4.1-flash` |
-| `POST /api/user/register` | **200** `{username,password}` — 无邮箱，无验证码（503 会重试两次，然后用带 e-mail 字段的调用重试） |
+| `POST /api/user/register` | **200** `{username,password}` — 无邮箱，无验证码（503 会重试两次，然后用带邮箱字段的调用重试） |
 | `POST /api/user/login` | **200** — `access_token`（cookie + `New-Api-User` 作为旧分支的回退） |
 | `GET /api/user/self` | **200** — 新账户配额为 500 |
-| `POST /api/token/` → `POST /api/token/<id>/key` | 令牌创建于**模型所属分组内**，明文密钥被揭示 |
+| `POST /api/token/` → `POST /api/token/<id>/key` | 令牌创建在**模型所属分组内**，明文密钥被揭示 |
 | `POST /v1/chat/completions` — 在写入**每个**密钥前运行 | **200** 且返回真实内容（`choices`，无 `error`） |
 | 聊天检查失败的密钥 | 绝不写入 `keys.txt` |
+
+> **质量门槛。** 这里的每个密钥在写入 `keys.txt` 之前都通过了实时 `chat-200`
+> （绝不发布失效密钥）。路由器组合在模型层面遵循同样的规则：只有**当模型返回 `chat-200` 且能调用工具**时才会添加条目——不支持工具调用的模型、失效的密钥或失效的提供方会被丢弃而非添加。可随时重新运行验证步骤；
+> 失败会被报告，绝不隐藏。
 
 ## 🧭 工作原理
 
@@ -133,12 +136,12 @@ inbox (one address per account)                                  a fresh address
 
 | 步骤 | 调用 | 备注 |
 | --- | --- | --- |
-| 注册 | `POST /api/user/register {username,password}` | 无 e-mail 字段；5xx 会在 2.5 秒后重试，然后用带地址的调用重试 |
-| 登录 | `POST /api/user/login {username,password}` | `access_token`，以及会话 cookie，用于只返回 cookie 的分支 |
+| 注册 | `POST /api/user/register {username,password}` | 无邮箱字段；5xx 会在 2.5 秒后重试，然后用带地址的调用重试 |
+| 登录 | `POST /api/user/login {username,password}` | `access_token`，外加会话 cookie，以兼容只返回 cookie 的分支 |
 | 账户 | `GET /api/user/self` | id + 配额 |
-| 定价 | `GET /api/pricing` | 最便宜的聊天模型及其 `enable_groups[0]` —— 令牌必须所在的分组 |
-| 密钥 | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`；分组才是让它能应答的关键 |
-| 检查 | `POST /v1/chat/completions` | 写入 `keys.txt` 前必须实时返回 200；429 是节奏信号（等待 2.5 秒，重试同一模型） |
+| 定价 | `GET /api/pricing` | 最便宜的聊天模型及其 `enable_groups[0]` — 令牌必须所在的分组 |
+| 密钥 | `POST /api/token/ {group}` → `POST /api/token/<id>/key` | `unlimited_quota: true`；分组才是让它响应的关键 |
+| 检查 | `POST /v1/chat/completions` | 写入 `keys.txt` 前必须实时返回 200；429 是限速信号（等待 2.5 秒，重试同一模型） |
 
 ## ⚙️ CLI 选项
 
@@ -149,32 +152,38 @@ node src/cli.js [mode] [flags]
 | 标志 | 默认值 | 含义 |
 | --- | --- | --- |
 | `--count N` | 10 | 要铸造的账户数（= 密钥数） |
-| `--conc N` | 2 | 并发在途账户数（最大 16）—— 每个 worker 固定一个出口 |
-| `--host <name>` | `xlapis.com` | 面板主机（同一流水线也可运行在此面板的镜像上） |
-| `--model <id>` | 最便宜的定价模型 | 将关卡固定到某个模型 id |
+| `--conc N` | 2 | 并发在途账户数（最大 16）— 每个 worker 固定一个出口 |
+| `--host <name>` | `xlapis.com` | 面板主机（同一套通道也运行在此面板的镜像上） |
+| `--model <id>` | 最便宜的定价模型 | 将门槛固定到某个模型 id |
 | `--group <name>` | 模型的分组 | 固定令牌分组 |
 | `--pool <file>` | `proxies.txt` | 代理列表（`XLAPIS_PROXIES` 环境变量也可用） |
 | `--gap MS` | 800 | 同一账户内模型之间的暂停 |
 | `--tries N` | 2 | 每个账户尝试的出口数 |
 
-筛选后的列表可能带有尾部注释（`http://host:port 1.2.3.4`）—— 加载器只保留第一列。
+筛选后的列表可能带有尾部注释（`http://host:port 1.2.3.4`）——加载器只保留第一列。
 
 ## 🛰️ 在代理之后
 
-每个请求都通过你池中的一个出口发出 —— 工具从不直接连接面板，并且**一个账户在其整个生命周期内都使用同一个出口**（面板将会话绑定到 IP）。在运营者的集群上测得：23 个出口中有 18 个能到达面板，在并发 2 的情况下，3 个账户在 72 秒内产出 **3/3 个有效密钥**（约 20 秒/密钥）。
+**可选 — 大规模使用时推荐（按 IP 限速、封禁）。** 本工具在无代理时也能工作。
+
+- **有代理池时：** 传入 `--pool <file>`（或设置 `XLAPIS_PROXIES`），每个请求都通过该列表中的一个出口——**一个账户终生使用一个出口**（面板会将会话绑定到 IP），线路失效会使该次尝试失败，工具随即转向下一个。
+- **无代理池时：** CLI 会打印 `running WITHOUT a proxy (direct)` 并直连。注册、密钥铸造或聊天门槛都不会改变——只是数据包发出的位置不同。
+- 对任一模式运行 `--screen`：它会在真实运行前用面板测试你现有的出口（或直连线路）。
+
+在运营方机群上测得：23 个出口中有 18 个能到达面板，并发为 2 的 3 个账户在 **72 秒内产出了验证可用的密钥**（约 20 秒/密钥）。
 
 ## 📄 文件
 
 | 路径 | 内容 |
 | --- | --- |
-| `keys.txt` | 聊天返回 200 的密钥，每行一个 —— 已被 git 忽略 |
-| `keys-ungated.txt` | 上次 `--verify-only` 扫描失败的密钥 —— 稍后重试 |
-| `accounts.json` | 每个账户的用户名 / 配额 / 分组 / 模型 / 聊天状态 —— 已被 git 忽略 |
-| `proxies.txt` | 你的出口列表 —— 已被 git 忽略 |
+| `keys.txt` | chat-200 密钥，每行一个 — 已被 git 忽略 |
+| `keys-ungated.txt` | 上次 `--verify-only` 扫描失败的密钥 — 稍后重试 |
+| `accounts.json` | 每个账户的用户名 / 配额 / 分组 / 模型 / 聊天状态 — 已被 git 忽略 |
+| `proxies.txt` | 你的出口列表 — 已被 git 忽略 |
 
 ## 🔌 连接到 9Router
 
-[9Router](https://9router.com) 是一个自托管、兼容 OpenAI 的路由器。一条命令即可将 `keys.txt` 变成一个带有可用组合的 provider-node：
+[9Router](https://9router.com) 是一个自托管、兼容 OpenAI 的路由器。一条命令即可将 `keys.txt` 变成一个带有可用组合的提供方节点：
 
 ```bash
 node src/connect-9router.js
@@ -184,22 +193,23 @@ node src/connect-9router.js
 
 ## 🔌 连接到 OmniRoute
 
-[OmniRoute](https://omniroute.online) 是一个自托管、兼容 OpenAI 的路由器。一条命令即可将 `keys.txt` 变成一个带有可用组合的 provider-node：
+[OmniRoute](https://omniroute.online) 是一个自托管、兼容 OpenAI 的路由器。一条命令即可将 `keys.txt` 变成一个带有可用组合的提供方节点：
 
 ```bash
 node src/connect-omniroute.js
 ```
 
 默认值：`--base http://localhost:20128`，`--password 123456`，`--name "Xlapis"`，`--prefix xlapis`，`--base-url https://xlapis.com/v1`。
+
 ## 🔑 一个密钥能给你什么
 
 | | |
 | --- | --- |
-| 🏢 提供商 | **Xlapis** — [xlapis.com](https://xlapis.com) |
-| 🎁 提供商提供什么 | 每个密钥一个账户 —— 免邮箱注册、绑定分组的令牌、每个密钥都经过聊天验证 |
+| 🏢 提供方 | **Xlapis** — [xlapis.com](https://xlapis.com) |
+| 🎁 提供方给予什么 | 每个密钥一个账户 — 免邮箱注册、绑定分组的令牌、每个密钥都经过聊天验证 |
 | 🔑 一个密钥能给你什么 | 一个作用域为其自身账户的 API 密钥：下方端点上的 16 个模型 id，受你套餐的限制。配额存在于**账户**上，这正是本工具为每个密钥创建一个账户的原因 |
 | 🌐 API 形态 | 兼容 OpenAI：`POST https://xlapis.com/v1/chat/completions` |
-| 🔒 你的数据 | 只联系 xlapis.com 和你配置的收件箱后端；密钥留在你的机器上 |
+| 🔒 你的数据 | 仅联系 xlapis.com 和你配置的收件箱后端；密钥保留在你的机器上 |
 
 ## 🐞 问题反馈
 
